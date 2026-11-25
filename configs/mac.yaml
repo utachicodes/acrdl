@@ -1,0 +1,15 @@
+# Configuration for running everything on an Apple Silicon Mac (no CUDA GPU).
+# Patch generation uses the 1.5B model on the Mac GPU (PyTorch "mps" backend).
+seed: 13
+
+generator:
+  backend: hf
+  model_name: Qwen/Qwen2.5-Coder-1.5B-Instruct
+  cache_dir: data/raw/models
+  n_candidates: 10
+  temperature: 0.8
+  max_new_tokens: 384
+
+evidence:
+  n_fuzz_inputs: 100
+  exec_timeout_s: 2.0

@@ -1,0 +1,15 @@
+# Second sampling pass for the ambiguous variants: more candidates at a higher
+# temperature, so that a small model shows the different readings of a silent spec.
+seed: 13
+
+generator:
+  backend: hf
+  model_name: Qwen/Qwen2.5-Coder-1.5B-Instruct
+  cache_dir: data/raw/models
+  n_candidates: 20
+  temperature: 1.0
+  max_new_tokens: 384
+
+evidence:
+  n_fuzz_inputs: 100
+  exec_timeout_s: 2.0

@@ -1,0 +1,40 @@
+seed: 13
+
+generator:
+  backend: mock            # mock (offline, scripted) | hf (Hugging Face causal LM)
+  model_name: Qwen/Qwen2.5-Coder-7B-Instruct
+  n_candidates: 10
+  temperature: 0.8
+  max_new_tokens: 512
+
+evidence:
+  n_fuzz_inputs: 200
+  exec_timeout_s: 2.0
+  memory_limit_mb: 512
+  use_symbolic: false
+  symbolic_timeout_s: 10.0
+
+model:
+  encoder_name: microsoft/unixcoder-base
+  encoder_trainable_layers: 4
+  code_dim: 768
+  evidence_dim: 30
+  cluster_feat_dim: 6
+  hidden_dim: 256
+  n_heads: 4
+  cluster_layers: 2
+  dropout: 0.1
+  n_classes: 3
+
+training:
+  batch_size: 16
+  lr: 2.0e-5               # encoder (top layers)
+  head_lr: 1.0e-3          # fusion model
+  epochs: 10
+  contrastive_weight: 0.1
+  contrastive_temperature: 0.1
+  class_weights: balanced   # or a list, e.g. [1.0, 1.0, 2.0]
+  output_dir: runs/default
+
+decision:
+  target_false_accept_rate: 0.05
