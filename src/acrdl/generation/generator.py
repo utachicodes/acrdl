@@ -56,7 +56,7 @@ class HFGenerator:
         self.max_new_tokens = max_new_tokens
         self._model = None
         self._tok = None
-        self._fp32 = False
+        self._dtype = None
 
     def _load(self) -> None:
         if self._model is not None:
@@ -77,6 +77,7 @@ class HFGenerator:
         self._model = AutoModelForCausalLM.from_pretrained(self.model_name, dtype=dtype,
                                                            cache_dir=self.cache_dir)
         self._model.to(device).eval()
+        self._dtype = dtype
 
     def generate(self, bug: BuggyProgram, n: int, failing: Optional[list[str]] = None
                  ) -> list[Patch]:
@@ -87,6 +88,7 @@ class HFGenerator:
                                             return_tensors="pt").to(self._model.device)
         texts: list[str] = []
         batch = n
+        wide = False
         while len(texts) < n:
             k = min(batch, n - len(texts))
             try:
@@ -95,16 +97,21 @@ class HFGenerator:
                 msg = str(e).lower()
                 if "out of memory" in msg and batch > 1:  # retry in smaller batches
                     batch = max(1, batch // 2)
-                elif "probability tensor" in msg and not self._fp32:
-                    # 16-bit overflow produced inf/nan logits: switch to 32-bit maths
+                elif "probability tensor" in msg and not wide:
+                    # float16 overflow gave inf/nan logits: redo this bug in bfloat16, which
+                    # has the float32 range at the same memory cost (float32 would need
+                    # twice the memory and pushed an 18 GB laptop into heavy swapping)
                     import torch
 
-                    self._model.to(torch.float32)
-                    self._fp32 = True
+                    self._model.to(torch.bfloat16)
+                    wide = True
                 else:
                     raise
             finally:
                 self._free()
+        if wide:  # back to the normal precision so every other bug is generated the same way
+            self._model.to(self._dtype)
+            self._free()
         return [Patch(f"{bug.bug_id}/c{i}", bug, extract_code(t)) for i, t in enumerate(texts)]
 
     def _sample(self, ids, k: int) -> list[str]:
