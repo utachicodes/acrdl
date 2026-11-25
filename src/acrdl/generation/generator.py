@@ -56,6 +56,7 @@ class HFGenerator:
         self.max_new_tokens = max_new_tokens
         self._model = None
         self._tok = None
+        self._fp32 = False
 
     def _load(self) -> None:
         if self._model is not None:
@@ -90,11 +91,18 @@ class HFGenerator:
             k = min(batch, n - len(texts))
             try:
                 texts += self._sample(ids, k)
-            except RuntimeError as e:  # GPU out of memory: retry in smaller batches
-                if "out of memory" not in str(e).lower() or batch == 1:
+            except RuntimeError as e:
+                msg = str(e).lower()
+                if "out of memory" in msg and batch > 1:  # retry in smaller batches
+                    batch = max(1, batch // 2)
+                elif "probability tensor" in msg and not self._fp32:
+                    # 16-bit overflow produced inf/nan logits: switch to 32-bit maths
+                    import torch
+
+                    self._model.to(torch.float32)
+                    self._fp32 = True
+                else:
                     raise
-                self._free()
-                batch = max(1, batch // 2)
             finally:
                 self._free()
         return [Patch(f"{bug.bug_id}/c{i}", bug, extract_code(t)) for i, t in enumerate(texts)]

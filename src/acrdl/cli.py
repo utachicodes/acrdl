@@ -148,7 +148,12 @@ def cmd_build_dataset(args: argparse.Namespace) -> int:
     print(f"{len(bugs)} bugs, {len(bugs) - len(todo)} already done, {len(todo)} to run")
     for i, bug in enumerate(todo, 1):
         t0 = time.time()
-        rep = pipe.run(bug)
+        try:
+            rep = pipe.run(bug)
+        except Exception as e:  # noqa: BLE001  one bad bug must not stop a long run
+            print(f"[{i}/{len(todo)}] SKIPPED {bug.bug_id}: {type(e).__name__}: "
+                  f"{str(e).splitlines()[0][:200] if str(e) else ''}", flush=True)
+            continue  # not marked done, so --resume retries it
         plaus = {r.patch.patch_id: r.patch.source for r in rep.patches if r.plausible}
         labels = label_patches(bug.problem, plaus, cfg.evidence.exec_timeout_s,
                                cfg.evidence.memory_limit_mb)
