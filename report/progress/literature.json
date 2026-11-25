@@ -1,0 +1,187 @@
+{
+  "intro": "Before committing to an idea I read the five papers from the ICSE 2026 session \"AI for Software Engineering 9\", which is what got me interested in this area. Then, on 24 November, I searched specifically for work on patch correctness and on ambiguity, because I wanted to be sure I was not rebuilding something that already exists. Below is what each paper did and how my project is different.",
+  "groups": [
+    {
+      "title": "2.1  ICSE 2026, AI for Software Engineering session",
+      "papers": [
+        {
+          "name": "LoopRepair",
+          "cite": "Ye, Sun, Cao, Bo and Li. Well Begun is Half Done: Location-Aware and Trace-Guided Iterative Automated Vulnerability Repair. ICSE 2026, Distinguished Paper",
+          "link_text": "arXiv:2512.20203",
+          "url": "https://arxiv.org/abs/2512.20203",
+          "did": "An LLM vulnerability-repair approach that first predicts where a patch should go, then scores test-failing candidate patches by whether they introduce new vulnerabilities and by taint-statement coverage, to pick the patch to refine in the next iteration. It produced 27 plausible patches on 40 C/C++ vulnerabilities (VulnLoc+).",
+          "differs": "Its patch-quality scores are hand-designed, specific to vulnerabilities and used on failing patches to steer the search. I learn a three-way judge for patches that already pass the tests, including the case where the specification itself is ambiguous."
+        },
+        {
+          "name": "Rethinking fine-tuned vulnerability repair",
+          "cite": "Han et al. Rethinking the Capability of Fine-Tuned Language Models for Automated Vulnerability Repair. ICSE 2026",
+          "link_text": "arXiv:2512.22633",
+          "url": "https://arxiv.org/abs/2512.22633",
+          "did": "Re-evaluated fine-tuned repair models with semantic-preserving transformations of the test sets and showed that exact-match metrics and overlap between training and test data overstate what the models can do.",
+          "differs": "This is less a competitor than a warning I took seriously: my labels come from running hidden tests rather than matching text, I split the data by problem, and I report a contamination-free subset (freshly mutated MBPP+ bugs) separately."
+        },
+        {
+          "name": "INTENTFIX",
+          "cite": "Heo, Choi, Kim, Kim and Lee. INTENTFIX: Automated Logic Vulnerability Repair via LLM-Driven Intent Modeling. ICSE 2026",
+          "link_text": "ICSE 2026 program page",
+          "url": "https://conf.researchr.org/details/icse-2026/icse-2026-research-track/218/INTENTFIX-Automated-Logic-Vulnerability-Repair-via-LLM-Driven-Intent-Modeling",
+          "did": "Uses an LLM to turn the developer's implicit intent into a structured model, compares it with the code to find semantic gaps, then synthesises and refines a patch. It reports 64.5% patch accuracy on 1,107 real CVEs.",
+          "differs": "INTENTFIX assumes the intent can be recovered and builds a fix from it. My project goes the other way: it judges fixes and tries to notice when the specification does not pin the intent down, and in that case it asks instead of choosing."
+        },
+        {
+          "name": "MGDebugger",
+          "cite": "Shi, Wang, Wan, Wang and Gu. From Code to Correctness: Closing the Last Mile of Code Generation with Hierarchical Debugging. ICSE 2026",
+          "link_text": "arXiv:2410.01215",
+          "url": "https://arxiv.org/abs/2410.01215",
+          "did": "Breaks buggy code into a tree of subfunctions and debugs them bottom-up with LLM-simulated execution. It reports a 97.6% repair success rate on HumanEvalFix.",
+          "differs": "It counts a repair as successful when the tests pass, which is exactly the signal I argue is not enough. The two fit together: a reviewer like mine could sit on top of a strong generator like MGDebugger."
+        },
+        {
+          "name": "LANTERN",
+          "cite": "Luo et al. Unlocking LLM Repair Capabilities Through Cross-Language Translation and Multi-Agent Refinement. ICSE 2026",
+          "link_text": "arXiv:2503.22512",
+          "url": "https://arxiv.org/abs/2503.22512",
+          "did": "Translates a bug into a programming language in which the LLM repairs better, fixes it there and translates the fix back, choosing the target language with an LLM agent. Evaluated on 5,068 bugs in 11 languages (xCodeEval).",
+          "differs": "It improves how fixes are generated. I work on how fixes are judged, so my reviewer does not care where the candidates came from."
+        }
+      ]
+    },
+    {
+      "title": "2.2  Patch correctness and ambiguity (targeted search)",
+      "papers": [
+        {
+          "name": "PATCH-SIM",
+          "cite": "Xiong et al. Identifying Patch Correctness in Test-Based Program Repair. ICSE 2018",
+          "link_text": "arXiv:1706.09120",
+          "url": "https://arxiv.org/abs/1706.09120",
+          "did": "Compares execution traces of the buggy and patched programs: passing tests should behave alike and failing tests differently. A hand-written heuristic, evaluated on Java.",
+          "differs": "I use this idea (behaviour preservation) as one of my input features, not as my contribution; I learn from it and add a third class."
+        },
+        {
+          "name": "ODS",
+          "cite": "Ye et al. Automated Classification of Overfitting Patches with Statically Extracted Code Features",
+          "link_text": "arXiv:1910.12057",
+          "url": "https://arxiv.org/abs/1910.12057",
+          "did": "Classifies patches as correct or overfitting from static features of the code change, without running them.",
+          "differs": "Binary and static only. A static-features classifier is one of my baselines."
+        },
+        {
+          "name": "APPT",
+          "cite": "Zhang et al. APPT: Boosting Automated Patch Correctness Prediction via Fine-tuning Pre-trained Models",
+          "link_text": "arXiv:2301.12453",
+          "url": "https://arxiv.org/abs/2301.12453",
+          "did": "Fine-tunes a pretrained language model on the code change to predict whether a patch is correct.",
+          "differs": "It looks at the code text only, with no execution evidence and two classes. My code branch is similar in spirit, and my ablations measure what execution evidence adds on top."
+        },
+        {
+          "name": "Invalidator",
+          "cite": "Le-Cong et al. Invalidator: Automated Patch Correctness Assessment via Semantic and Syntactic Reasoning",
+          "link_text": "arXiv:2301.01113",
+          "url": "https://arxiv.org/abs/2301.01113",
+          "did": "Infers program invariants from the buggy and developer-fixed programs and flags patches that break them, combined with a learned syntactic classifier.",
+          "differs": "It needs the developer's reference fix, which a real reviewer would not have, and it predicts two classes. My system never needs a reference fix."
+        },
+        {
+          "name": "Crex",
+          "cite": "Predicting Patch Correctness in Automated Repair of C Programs through Transfer Learning of Execution Semantics. Information and Software Technology",
+          "link_text": "ScienceDirect",
+          "url": "https://www.sciencedirect.com/science/article/abs/pii/S0950584922001562",
+          "did": "Learns embeddings of execution micro-traces with transfer learning and classifies C patches.",
+          "differs": "Learned execution semantics, but binary labels and no notion of an ambiguous specification."
+        },
+        {
+          "name": "Prism",
+          "cite": "A Semantic-Based Approach to Overfitting Patch Detection. OOPSLA 2025",
+          "link_text": "paper PDF",
+          "url": "https://prl.korea.ac.kr/papers/oopsla25prism.pdf",
+          "did": "Trains a classifier on 66 semantic features from a differential static analysis of the buggy and patched code.",
+          "differs": "Static and binary. I combine static smells with execution and cluster evidence and predict three classes."
+        },
+        {
+          "name": "RePaCA",
+          "cite": "RePaCA: Leveraging Reasoning Large Language Models for Static Automated Patch Correctness Assessment. 2025",
+          "link_text": "arXiv:2507.22580",
+          "url": "https://arxiv.org/abs/2507.22580",
+          "did": "Fine-tunes a reasoning LLM with reinforcement learning to read the buggy and fixed code and decide whether the patch is correct or overfitting.",
+          "differs": "No execution and two classes. I include an LLM-as-judge baseline in my evaluation."
+        },
+        {
+          "name": "xTestCluster",
+          "cite": "Test-based Patch Clustering for Automatically-Generated Patches Assessment",
+          "link_text": "arXiv:2207.11082",
+          "url": "https://arxiv.org/abs/2207.11082",
+          "did": "Groups candidate patches by their outputs on generated tests so that developers review one patch per group.",
+          "differs": "Their clusters are a tool for human review. I feed the cluster structure into a learned model that decides what the disagreement means."
+        },
+        {
+          "name": "PatchFusion",
+          "cite": "A Single Patch Is Not Enough: Deterministic Fusion of Repair Candidates. 2026",
+          "link_text": "arXiv:2607.01597",
+          "url": "https://arxiv.org/abs/2607.01597",
+          "did": "Selects a patch by how strongly the other candidates agree with it, without running tests, on SWE-bench.",
+          "differs": "It treats agreement as evidence of correctness. In my data, disagreement can also mean the specification is silent, so I model both causes."
+        },
+        {
+          "name": "SpecFix",
+          "cite": "Automated Repair of Ambiguous Problem Descriptions for LLM-Based Code Generation. ASE 2025",
+          "link_text": "arXiv:2505.07270",
+          "url": "https://arxiv.org/abs/2505.07270",
+          "did": "Samples many programs from a task description, clusters them by behaviour, treats a split as a sign of ambiguity and repairs the description.",
+          "differs": "This is the closest idea I found, but it is about code generation, not repair, and it fixes the description rather than judging a patch. It cannot tell ambiguity apart from wrong programs, which is the question my project is built around."
+        },
+        {
+          "name": "Abstain and Validate",
+          "cite": "Abstain and Validate: A Dual-LLM Policy for Reducing Noise in Agentic Program Repair. 2025",
+          "link_text": "arXiv:2510.03217",
+          "url": "https://arxiv.org/abs/2510.03217",
+          "did": "An agent abstains on bugs it is unlikely to fix and rejects unlikely candidate patches, to reduce noise for developers.",
+          "differs": "It abstains because a bug is hard. I abstain because the specification is ambiguous, and I report the exact input where it is silent."
+        },
+        {
+          "name": "Evidence audit",
+          "cite": "Wu et al. Patch Correctness in Automated Program Repair: A Five-Dimensional Evidence Framework and Cross-Benchmark Audit. November 2026",
+          "link_text": "arXiv:2611.10837",
+          "url": "https://arxiv.org/abs/2611.10837",
+          "did": "Audits what evidence supports patch-correctness claims across studies and calls for an explicit \"uncertain\" label; it reports that human reviewers called 51 of 77 sampled SWE-bench patches uncertain.",
+          "differs": "It proposes a reporting protocol but no detector. I am trying to build the automatic detector this audit points toward."
+        },
+        {
+          "name": "SWE-Gym data study",
+          "cite": "What Makes Good Data for Training Coding Agents? A Systematic Study on SWE-Gym. November 2026",
+          "link_text": "arXiv:2611.30207",
+          "url": "https://arxiv.org/abs/2611.30207",
+          "did": "Studies training data for coding agents and finds that wrong patches that pass the tests make up about a quarter of all passing patches.",
+          "differs": "It measures the problem I am working on but does not propose a way to catch these patches."
+        }
+      ]
+    }
+  ],
+  "summary_intro": "After going through all eighteen papers, I did not find one that treats an ambiguous specification as its own verdict in program repair, or that tries to separate the two reasons candidate fixes can disagree. Table 1 sums up the difference.",
+  "summary": [
+    [
+      "What is judged",
+      "Correct or overfitting (two classes)",
+      "Correct, overfitting or spec-ambiguous (three classes)"
+    ],
+    [
+      "Ambiguity detection",
+      "Only for code generation (SpecFix)",
+      "For program repair, with the silent input reported"
+    ],
+    [
+      "Candidate disagreement",
+      "A single signal of wrongness or agreement",
+      "A learned split into \"some patches are wrong\" and \"the specification is silent\""
+    ],
+    [
+      "Reference fix needed",
+      "Often (Invalidator, differential testing)",
+      "Never: spec, buggy program and visible tests only"
+    ],
+    [
+      "Ground truth for ambiguity",
+      "None (human \"uncertain\" labels at best)",
+      "Controlled underspecification gives exact silent inputs"
+    ]
+  ]
+}
