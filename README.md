@@ -1,7 +1,7 @@
 # Automated Code Review and Program Repair System Using Deep Learning
 
 [![CI](https://github.com/utachicodes/acrdl/actions/workflows/ci.yml/badge.svg)](https://github.com/utachicodes/acrdl/actions/workflows/ci.yml)
-![Python](https://img.shields.io/badge/python-3.9%20%7C%203.11-blue)
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.x-ee4c2c?logo=pytorch&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-53%20passing-brightgreen)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-261230)](https://github.com/astral-sh/ruff)
@@ -211,7 +211,7 @@ make lint    # ruff
 
 Without the `ml` extra, the model tests are skipped. With it installed, the suite
 also trains a small model end to end on the toy data. CI
-(`.github/workflows/ci.yml`) runs lint, tests and the demo on Python 3.9 and 3.11.
+(`.github/workflows/ci.yml`) runs lint, tests and the demo on Python 3.10 and 3.12 (the code also runs on 3.9).
 
 ## Project status
 

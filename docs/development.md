@@ -29,7 +29,7 @@ make lint       # ruff check src tests
 make format     # ruff check --fix src tests
 ```
 
-CI runs lint, tests and `acrdl demo` on Python 3.9 and 3.11.
+CI runs lint, tests and `acrdl demo` on Python 3.10 and 3.12; the code also runs on 3.9.
 
 ## Adding an evidence collector
 
