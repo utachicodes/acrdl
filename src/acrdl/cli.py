@@ -133,6 +133,11 @@ def cmd_build_dataset(args: argparse.Namespace) -> int:
         return 2
     pipe = Pipeline(cfg, make_generator(cfg))
     bugs = build_bugs(args.source, args.mutants, args.limit, cfg.seed, args.bugs)
+    skip_file = Path(args.skip_file) if args.skip_file else None
+    if skip_file and skip_file.exists():
+        skip = {ln.split("\t", 1)[0].strip() for ln in skip_file.read_text().splitlines()
+                if ln.strip() and not ln.startswith("#")}
+        bugs = [b for b in bugs if b.bug_id not in skip]
     if args.tag:  # a second sampling pass gets its own bug ids (same problem ids)
         for b in bugs:
             b.bug_id = f"{b.bug_id}@{args.tag}"
@@ -146,6 +151,12 @@ def cmd_build_dataset(args: argparse.Namespace) -> int:
     hist = {lab.name: 0 for lab in Label}
     todo = [b for b in bugs if b.bug_id not in done]
     print(f"{len(bugs)} bugs, {len(bugs) - len(todo)} already done, {len(todo)} to run")
+    if args.max_bugs and len(todo) > args.max_bugs:
+        # Stop after max_bugs and let the caller relaunch: a fresh process resets GPU memory
+        # (PyTorch on Apple GPUs keeps a growing cache of kernels for every new input shape).
+        todo, more = todo[: args.max_bugs], True
+    else:
+        more = False
     for i, bug in enumerate(todo, 1):
         t0 = time.time()
         try:
@@ -166,7 +177,7 @@ def cmd_build_dataset(args: argparse.Namespace) -> int:
         print(f"[{i}/{len(todo)}] {bug.bug_id}: {len(rep.patches)} candidates, "
               f"{len(plaus)} plausible, {time.time() - t0:.0f}s  totals {hist}", flush=True)
     print(f"wrote records to {out}  {hist}")
-    return 0
+    return 75 if more else 0  # 75 (EX_TEMPFAIL): stopped early on purpose, run again
 
 
 def cmd_prepare_data(args: argparse.Namespace) -> int:
@@ -259,6 +270,10 @@ def build_parser() -> argparse.ArgumentParser:
                    help="prepared bug files (comma separated) for --source prepared")
     b.add_argument("--tag", default=None,
                    help="suffix for bug ids, to keep a second sampling pass separate")
+    b.add_argument("--skip-file", default="data/skip_generation.tsv",
+                   help="bug ids never sent to the generator (TSV, first column)")
+    b.add_argument("--max-bugs", type=int, default=None,
+                   help="process at most N bugs, then exit with code 75 if work remains")
     b.add_argument("--resume", action="store_true",
                    help="append to --out and skip bugs already processed")
     b.add_argument("--out", default="data/processed/toy.jsonl")

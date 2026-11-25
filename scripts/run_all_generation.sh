@@ -10,12 +10,16 @@ OUT=data/processed
 LOG="$OUT/generation.log"
 export PYTHONWARNINGS=ignore HF_HUB_OFFLINE=1 PYTHONUNBUFFERED=1
 
-run_set() {  # name, bug file(s)
+run_set() {  # name, bug file(s); relaunches every 15 bugs to reset GPU memory
   echo "=== $1 ($(date '+%Y-%m-%d %H:%M')) ===" | tee -a "$LOG"
-  caffeinate -i .venv/bin/acrdl --config configs/mac.yaml build-dataset --source prepared \
-    --bugs "$2" --out "$OUT/records_$1.jsonl" --resume 2>&1 \
-    | grep --line-buffered -vE "deprecated|attention mask" | tee -a "$LOG"
-  return "${PIPESTATUS[0]}"
+  local rc=75
+  while [ "$rc" -eq 75 ]; do
+    caffeinate -i .venv/bin/acrdl --config configs/mac.yaml build-dataset --source prepared \
+      --bugs "$2" --out "$OUT/records_$1.jsonl" --resume --max-bugs 15 2>&1 \
+      | grep --line-buffered -vE "deprecated|attention mask" | tee -a "$LOG"
+    rc="${PIPESTATUS[0]}"
+  done
+  return "$rc"
 }
 
 run_set underspec "$OUT/underspec.jsonl" || exit 1

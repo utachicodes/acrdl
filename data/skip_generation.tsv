@@ -1,0 +1,2 @@
+# Bugs never sent to the patch generator. Columns: bug_id<TAB>reason
+HumanEval/129#hef	the Apple GPU produces nan logits for this prompt in float16 and bfloat16, and each attempt leaves GPU memory in a state that slows every later bug to a crawl (25 Nov 2026)
