@@ -1,0 +1,16 @@
+# Ambiguous variants excluded after manual review on 24 Nov 2026 (see report, Section 5).
+# Rule: exclude a variant if the reduced docstring still determines the behaviour on the
+# ambiguous inputs, if the specification was damaged by the sentence stripper, or if the
+# ambiguous input is an artefact. Columns: bug_id<TAB>reason
+HumanEval/68~underspec#guard38	docstring still has "Input: [] Output: []" and the empty-array rule
+HumanEval/141~underspec#guard18	main description removed; specification damaged
+Mbpp/84~underspec#guard2	ambiguous input is the boolean True, an artefact
+Mbpp/771~underspec#guard10	"balanced or not" still determines the output
+HumanEval/63#hef~silent-zero	sequence definition removed; specification damaged
+HumanEval/105#hef~silent-empty	docstring still states the empty-array behaviour
+HumanEval/141#hef~silent-empty	main description removed; specification damaged
+HumanEval/68#hef~silent-empty	docstring still has "Input: [] Output: []"
+HumanEval/46#hef~silent-zero	sequence definition removed; specification damaged
+HumanEval/87#hef~silent-empty	main description removed; specification damaged
+HumanEval/125#hef~silent-empty	main description removed; specification damaged
+HumanEval/159#hef~silent-zero	examples and variable definitions removed; specification damaged
